@@ -10,22 +10,39 @@ TIME = TODAY.strftime("%H:%M")
 
 # API stuff
 NUTRITIONIX_ENDPOINT = 'https://trackapi.nutritionix.com/v2/natural/exercise'
-headers = {
+NUTRITIONIX_HEADERS = {
     "x-app-id": os.environ['NUTRITIONIX_API_ID'],
     "x-app-key": os.environ['NUTRITIONIX_API_KEY'],
 }
+SHEETY_ENDPOINT = 'https://api.sheety.co/c4ee1ee692651edb4c7ee96edf35311b/myWorkouts/workouts'
+SHEETY_HEADERS = {
+    "Authorization": f"Bearer {os.environ['SHEETY_TOKEN']}"
+}
 
-GOOGLE_SHEETS_LINK = 'https://docs.google.com/spreadsheets/d/1DHL6Y8XAHSC_KhJsa9QMekwP8b4YheWZY_sxlH3i494/edit#gid=0'
+user_query = input("Tell me what exercise you did: ")
 
-exercise_data = input("Tell me what exercise you did: ")
-
-exercise_parameters = {
-    "query": exercise_data,
+nutritionix_parameters = {
+    "query": user_query,
     "gender": GENDER,
     "weight_kg": WEIGHT_KG,
     "height_cm": HEIGHT_CM,
     "age": AGE,
 }
 
-response = requests.post(url=NUTRITIONIX_ENDPOINT, json=exercise_parameters, headers=headers)
-exercise_data = response.json()['exercise']
+nutritionix_response = requests.post(url=NUTRITIONIX_ENDPOINT, json=nutritionix_parameters, headers=NUTRITIONIX_HEADERS)
+exercise_data = nutritionix_response.json()['exercises']
+
+for exercise in exercise_data:
+    # Add data to rows
+    sheety_parameters = {
+        "workout": {
+            "date": DATE,
+            "time": TIME,
+            "exercise": exercise['name'].title(),
+            "duration": exercise['duration_min'],
+            "calories": exercise['nf_calories'],
+        }
+    }
+    sheety_response = requests.post(url=SHEETY_ENDPOINT, json=sheety_parameters, headers=SHEETY_HEADERS)
+    sheety_response.raise_for_status()
+    print(sheety_response.status_code)
