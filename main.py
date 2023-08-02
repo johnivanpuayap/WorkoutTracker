@@ -6,7 +6,7 @@ from datetime import datetime
 # Data
 TODAY = datetime.now()
 DATE = TODAY.strftime("%d/%m/%Y")
-TIME = TODAY.strftime("%H:%M")
+TIME = TODAY.strftime("%X")
 
 # API stuff
 NUTRITIONIX_ENDPOINT = 'https://trackapi.nutritionix.com/v2/natural/exercise'
@@ -43,6 +43,10 @@ for exercise in exercise_data:
             "calories": exercise['nf_calories'],
         }
     }
+
+    print(sheety_parameters)
+
     sheety_response = requests.post(url=SHEETY_ENDPOINT, json=sheety_parameters, headers=SHEETY_HEADERS)
     sheety_response.raise_for_status()
-    print(sheety_response.status_code)
+    if sheety_response.status_code == 200:
+        print('Added new row')
